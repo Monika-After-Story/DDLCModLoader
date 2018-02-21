@@ -5,3 +5,6 @@ game/python-packages/singleton.py
 *.rpyc
 *.rpyb
 log.txt
+errors.txt
+traceback.txt
+.DS_Store
