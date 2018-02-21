@@ -1,0 +1,7 @@
+
+*.rpa
+game/firstrun
+game/python-packages/singleton.py
+*.rpyc
+*.rpyb
+log.txt
