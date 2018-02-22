@@ -1,14 +1,57 @@
 python early:
-    mods_loaded = False
     skipping_main_menu = True
     lockout_main_menu = False
 
+    mods_list = {}
+    mpersistent = MultiPersistent("ddlc_mods")
+
+    if mpersistent._loader_major:
+        mod_major = mpersistent._loader_major
+    else:
+        mod_major= "Doki Doki Literature Club (Base Game)"
+
+    if mpersistent._loader_load_mods:
+        mods_loaded = mpersistent._loader_load_mods
+    else:
+        mods_loaded = ["Doki Doki Literature Club (Base Game)"]
+
+    def register_mod(mod_name, major, prefix, label_overrides = None,dependencies = None,config_settings=None):
+        mods_list[mod_name] = {}
+
+        mods_list[mod_name]["loaded"]=False
+        mods_list[mod_name]["major"]=major
+
+        #Major mod specific fields
+        if major and label_overrides:
+            mods_list[mod_name]["label_overrides"]=label_overrides
+        else:
+            mods_list[mod_name]["label_overrides"]=None
+
+        if major and config_settings:
+            mods_list[mod_name]["config_settings"]=config_settings
+        else:
+            mods_list[mod_name]["config_settings"]=None
+
+        #Minor mod specific fields
+        if not major and dependencies:
+            mods_list[mod_name]["dependencies"]=dependencies
+        else:
+            mods_list[mod_name]["dependencies"]=None
+
+
+        return
+
+
+
 init python:
-    if not mods_loaded:
+    register_mod("Doki Doki Literature Club (Base Game)",True,"")
+
+    if mod_major == "Doki Doki Literature Club (Base Game)":
         config.label_overrides["splashscreen"]="mod_loader_start"
+        config.label_overrides["quit"]="mod_loader_quit"
 
 init:
-    if not mods_loaded:
+    if mod_major =="Doki Doki Literature Club (Base Game)":
 
         screen navigation():
 
@@ -63,6 +106,7 @@ init:
                 else:
                     timer 1.75 action Start("autoload_yurikill")
 
+
 label mod_loader_start:
     if skipping_main_menu:
         call screen confirm("Would you like to load a mod?", Return(True), Return(False))
@@ -76,15 +120,32 @@ label mod_loader_start:
     $config.label_overrides["splashscreen"]="splashscreen"
     jump splashscreen
 
+label mod_loader_quit:
+    python:
+        load_mods = []
+        for key in mods_list:
+            if mods_list[key]["loaded"]:
+                load_mods.append(key)
+        load_mods.append(mod_major)
+
+        mpersistent._loader_major=mod_major
+        mpersistent._loader_major_settings=mods_list[mod_major]
+        mpersistent._loader_load_mods=load_mods
+
+        mpersistent.save()
+
+    $config.label_overrides["quit"]="quit"
+    jump quit
 
 screen mod_loader():
 
+    style_prefix "loader"
     tag menu
 
     if renpy.mobile:
-        $ cols = 2
+        $ cols = 1
     else:
-        $ cols = 4
+        $ cols = 1
 
     use game_menu(_("Mods"), scroll="viewport"):
 
@@ -96,5 +157,21 @@ screen mod_loader():
                 box_wrap True
 
                 vbox:
+                    style_prefix "radio"
+                    label _("Major Mods")
+                    for key in mods_list:
+                        if mods_list[key]["major"]:
+                            textbutton _(key) action SetVariable("mod_major",key)
 
-                    label _("Mods")
+                vbox:
+                    style_prefix "check"
+                    label _("Minor Mods")
+                    for key in mods_list:
+                        if not mods_list[key]["major"]:
+                            textbutton _(key) action ToggleDict(mods_list[key],"loaded")
+
+style loader_vbox:
+    xsize 500
+
+style radio_vbox is loader_vbox
+style check_vbox is loader_vbox
