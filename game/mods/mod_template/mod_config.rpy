@@ -1,5 +1,5 @@
 init python:
-    register_mod(
+    loader.register_mod(
         mod_name="DDLC Mod Template",
         major=True,
         prefix="template",
@@ -14,7 +14,7 @@ init python:
         )
 
 init:
-    if mod_major == "DDLC Mod Template":
+    if loader.is_loaded("DDLC Mod Template"):
 
         screen navigation():
 
@@ -37,11 +37,11 @@ init:
 
                     else:
 
-                        textbutton _("History") action [ShowMenu("history"), SensitiveIf(renpy.get_screen("history") == None and not lockout_main_menu)]
+                        textbutton _("History") action [ShowMenu("history"), SensitiveIf(renpy.get_screen("history") == None and not loader.lockout_main_menu)]
 
-                        textbutton _("Save Game") action [ShowMenu("save"), SensitiveIf(renpy.get_screen("save") == None and not lockout_main_menu)]
+                        textbutton _("Save Game") action [ShowMenu("save"), SensitiveIf(renpy.get_screen("save") == None and not loader.lockout_main_menu)]
 
-                    textbutton _("Load Game") action [ShowMenu("load"), SensitiveIf(renpy.get_screen("load") == None and not lockout_main_menu)]
+                    textbutton _("Load Game") action [ShowMenu("load"), SensitiveIf(renpy.get_screen("load") == None and not loader.lockout_main_menu)]
 
                     if _in_replay:
 
@@ -49,13 +49,13 @@ init:
 
                     elif not main_menu:
                         if persistent.playthrough != 3:
-                            textbutton _("Main Menu") action [MainMenu(), SensitiveIf(not lockout_main_menu)]
+                            textbutton _("Main Menu") action [MainMenu(), SensitiveIf(not loader.lockout_main_menu)]
                         else:
                             textbutton _("Main Menu") action NullAction()
 
                     textbutton _("Mods") action [ShowMenu("mod_loader"), SensitiveIf(renpy.get_screen("mod_loader") == None)]
 
-                    textbutton _("Settings") action [ShowMenu("preferences"), SensitiveIf(renpy.get_screen("preferences") == None and not lockout_main_menu)]
+                    textbutton _("Settings") action [ShowMenu("preferences"), SensitiveIf(renpy.get_screen("preferences") == None and not loader.lockout_main_menu)]
 
                     #textbutton _("About") action ShowMenu("about")
 
