@@ -34,16 +34,10 @@ python early in loader:
         return
 
     def is_loaded(mod_name):
-        if mod_name in mods_loaded:
-            return True
-        else:
-            return False
+        return mod_name in mods_loaded
 
     def is_installed(mod_name):
-        if mod_name in mods_list.keys():
-            return True
-        else:
-            return False
+        return mod_name in mods_list
 
 python early:
 
