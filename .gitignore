@@ -9,3 +9,4 @@ errors.txt
 traceback.txt
 .DS_Store
 *.chr
+project.json
