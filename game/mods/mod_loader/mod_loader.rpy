@@ -168,14 +168,14 @@ screen mod_loader():
                 box_wrap True
 
                 vbox:
-                    style_prefix "radio"
+                    style_prefix "loader_radio"
                     label _("Major Mods")
                     for key in loader.mods_list:
                         if loader.mods_list[key]["major"]:
                             textbutton _(key) action SetField(loader,"next_major",key)
 
                 vbox:
-                    style_prefix "check"
+                    style_prefix "loader_check"
                     label _("Minor Mods")
                     for key in loader.mods_list:
                         if not loader.mods_list[key]["major"]:
@@ -184,5 +184,7 @@ screen mod_loader():
 style loader_vbox:
     xsize 500
 
-style radio_vbox is loader_vbox
-style check_vbox is loader_vbox
+style loader_radio is radio
+style loader_check is check
+style loader_radio_vbox is loader_vbox
+style loader_check_vbox is loader_vbox
