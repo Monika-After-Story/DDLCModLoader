@@ -2,6 +2,7 @@
 #It adds a store called `loader` with a number of functions and variables
 #It also adds the mod_loader() menu screen, which can be added to navigation
 
+
 #Create a store for mod_loader specific variables and functions
 #This has to be in an early block to be accessible to the next section
 python early in loader:
@@ -11,6 +12,7 @@ python early in loader:
     mod_major = "Doki Doki Literature Club (Base Game)"
     mods_loaded = []
     next_major = None
+    restart_prompt_seen = False
 
     def register_mod(mod_name, major, prefix, label_overrides = None,dependencies = None,config_settings=None):
         mods_list[mod_name] = {}
@@ -43,11 +45,9 @@ python early in loader:
     def is_installed(mod_name):
         return mod_name in mods_list
 
-
 #This section checks to see if mods are to be loaded
 #We then set specific configuration variables that need to be set in an early block
 python early:
-
     #Load the multi-game persistent for DDLC Mods
     mpersistent = MultiPersistent("ddlc_mods")
 
@@ -59,6 +59,24 @@ python early:
 
     if mpersistent._loader_load_mods:
         loader.mods_loaded = mpersistent._loader_load_mods
+
+    loader.next_major = loader.mod_major
+
+    def loader_update_next_load():
+
+        temp_load_mods = []
+        for key in loader.mods_list:
+            if loader.mods_list[key]["loaded"] and not loader.mods_list[key]["major"]:
+                temp_load_mods.append(key)
+
+        mpersistent._loader_major=loader.next_major
+        mpersistent._loader_major_settings=loader.mods_list[loader.next_major]
+        mpersistent._loader_load_mods=temp_load_mods
+
+        mpersistent.save()
+
+        return
+
 
 #The mod loader screen is a settings page which can be added to the main menu of
 #any mod.
@@ -86,14 +104,14 @@ screen mod_loader():
                     label _("Major Mods")
                     for key in loader.mods_list:
                         if loader.mods_list[key]["major"]:
-                            textbutton _(key) action SetField(loader,"next_major",key)
+                            textbutton _(key) action [SetField(loader,"next_major",key), Function(loader_update_next_load), If(not loader.restart_prompt_seen, Show("dialog",transition=None,message="The game must be restarted for changes to take effect.",ok_action=[Hide("dialog"), SetField(loader,"restart_prompt_seen",True)]))]
 
                 vbox:
                     style_prefix "loader_check"
                     label _("Minor Mods")
                     for key in loader.mods_list:
                         if not loader.mods_list[key]["major"]:
-                            textbutton _(key) action ToggleDict(loader.mods_list[key],"loaded")
+                            textbutton _(key) action [ToggleDict(loader.mods_list[key],"loaded"), Function(loader_update_next_load), If(not loader.restart_prompt_seen, Show("dialog",transition=None,message="The game must be restarted for changes to take effect.",ok_action=[Hide("dialog"), SetField(loader,"restart_prompt_seen",True)]))]
 
 style loader_vbox:
     xsize 500
@@ -110,7 +128,6 @@ init python:
 
     if loader.is_loaded("Doki Doki Literature Club (Base Game)"):
         config.label_overrides["splashscreen"]="mod_loader_start"
-        config.label_overrides["quit"]="mod_loader_quit"
 
 #If you're running the base game, we need to add the mods pane to settings
 init:
@@ -183,22 +200,3 @@ label mod_loader_start:
 
     $config.label_overrides["splashscreen"]="splashscreen"
     jump splashscreen
-
-#When quitting the game, set persistent variables so the correct mod is loaded
-#on next play.
-##### Changes to the mod selection menu should make this pointless
-label mod_loader_quit:
-    python:
-        temp_load_mods = []
-        for key in loader.mods_list:
-            if loader.mods_list[key]["loaded"] and not loader.mods_list[key]["major"]:
-                temp_load_mods.append(key)
-
-        mpersistent._loader_major=loader.next_major
-        mpersistent._loader_major_settings=loader.mods_list[loader.next_major]
-        mpersistent._loader_load_mods=temp_load_mods
-
-        mpersistent.save()
-
-    $config.label_overrides["quit"]="quit"
-    jump quit
